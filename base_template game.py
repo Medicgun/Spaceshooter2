@@ -7,7 +7,7 @@ font.init()
 
 # global variables
 score = 0
-lost = 3
+lost = 5
 reload = False
 shots = 0
 
@@ -31,9 +31,13 @@ class Player(GameSprite):
         if (keys[K_RIGHT] or keys[K_d]) and self.rect.x < 700 - 80:
             self.rect.x += self.speed
 
-    def fire(self):
-        new_bullet = Bullet("images/bullet.png", self.rect.centerx, self.rect.top, 15, 50, 15)
-        bullets.add(new_bullet)
+    def fireup(self):
+        new_bullet = Bullet_up("images/bullet.png", self.rect.centerx, self.rect.top, 15, 50, 15)
+        bullets_up.add(new_bullet)
+
+    def firedown(self):
+        new_bullet = Bullet_down("images/bullet.png", self.rect.centerx, self.rect.top, 15, 50, 15)
+        bullets_down.add(new_bullet)
         
 class Enemy(GameSprite):
     def update(self):
@@ -45,10 +49,16 @@ class Enemy(GameSprite):
             self.rect.x = randint(80, 620)
             lost -= 1
 
-class Bullet(GameSprite):
+class Bullet_up(GameSprite):
     def update(self):
         self.rect.y -= self.speed
         if self.rect.y < 0:
+            self.kill()
+
+class Bullet_down(GameSprite):
+    def update(self):
+        self.rect.y += self.speed
+        if self.rect.y > 500:
             self.kill()
 
 class Asteroid(GameSprite):
@@ -59,7 +69,7 @@ class Asteroid(GameSprite):
             self.rect.y = 0
             self.rect.x = randint(80, 620)
 
-player = Player("images/rocket.png", 255, 420, 65, 65, 10)
+player = Player("images/rocket.png", 255, 220, 65, 65, 10)
 
 enemies = sprite.Group()
 for i in range(5):
@@ -73,7 +83,8 @@ for i in range(3):
     asteroids.add(asteroid)
 
 
-bullets = sprite.Group()
+bullets_up = sprite.Group()
+bullets_down = sprite.Group()
 
 window = display.set_mode((700, 500))
 background = transform.scale(
@@ -101,8 +112,10 @@ while game:
         # handle with the enemies
         enemies.draw(window)
         enemies.update()
-        bullets.draw(window)
-        bullets.update()
+        bullets_up.draw(window)
+        bullets_down.draw(window)
+        bullets_up.update()
+        bullets_down.update()
         asteroids.draw(window)
         asteroids.update()
 
@@ -157,11 +170,23 @@ while game:
             mixer.music.stop()
 
         collides = sprite.groupcollide(
-            bullets, 
+            bullets_up, 
             enemies,  
             True,
-            True
+            True,
         )
+        collides2 = sprite.groupcollide(
+            bullets_down, 
+            enemies,  
+            True,
+            True,
+        )
+        for coll in collides2:
+            score += 1
+            new_enemy = Enemy("images/ufo.png", randint(80, 620), 50, 85, 65, randint(1, 5))
+            #add new enemy to the group
+            enemies.add(new_enemy)
+
         for collide in collides:
             score += 1
             new_enemy = Enemy("images/ufo.png", randint(80, 620), 50, 85, 65, randint(1, 5))
@@ -173,8 +198,12 @@ while game:
             game = False
 
         if e.type == KEYDOWN and not finish and not reload:
-            if e.key == K_SPACE:
-                player.fire()
+            if e.key == K_UP:
+                player.fireup()
+                fire_sound.play()
+                shots = shots + 1
+            if e.key == K_DOWN:
+                player.firedown()
                 fire_sound.play()
                 shots = shots + 1
                 if shots >= 5:
