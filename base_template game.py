@@ -30,6 +30,11 @@ class Player(GameSprite):
             self.rect.x -= self.speed
         if (keys[K_RIGHT] or keys[K_d]) and self.rect.x < 700 - 80:
             self.rect.x += self.speed
+        if (keys[K_w]) and self.rect.y > 0:
+            self.rect.y -= self.speed
+        if (keys[K_s]) and self.rect.y < 500:
+            self.rect.y += self.speed
+        
 
     def fireup(self):
         new_bullet = Bullet_up("images/bullet.png", self.rect.centerx, self.rect.top, 15, 50, 15)
@@ -39,13 +44,23 @@ class Player(GameSprite):
         new_bullet = Bullet_down("images/bullet.png", self.rect.centerx, self.rect.top, 15, 50, 15)
         bullets_down.add(new_bullet)
         
-class Enemy(GameSprite):
+class Enemy_down(GameSprite):
     def update(self):
         self.rect.y += self.speed
         global lost # call the global variable
 
         if self.rect.y > 500:
             self.rect.y = 0
+            self.rect.x = randint(80, 620)
+            lost -= 1
+
+class Enemy_up(GameSprite):
+    def update(self):
+        self.rect.y -= self.speed
+        global lost # call the global variable
+
+        if self.rect.y < 0:
+            self.rect.y = 500
             self.rect.x = randint(80, 620)
             lost -= 1
 
@@ -69,17 +84,21 @@ class Asteroid(GameSprite):
             self.rect.y = 0
             self.rect.x = randint(80, 620)
 
-player = Player("images/rocket.png", 255, 220, 65, 65, 10)
+player = Player("images/rocket.png", 255, 220, 65, 65, 8)
 
 enemies = sprite.Group()
-for i in range(5):
-    enemy = Enemy("images/ufo.png", randint(80, 620), 50, 85, 65, randint(1, 2))
-    enemies.add(enemy)
+for i in range(2):
+    enemydown = Enemy_down("images/ufo.png", randint(80, 620), -50, 85, 65, randint(1, 2))
+    enemies.add(enemydown)
+
+for i in range(2):
+    enemyup = Enemy_up("images/ufo.png", randint(80, 620), 500, 85, 65, randint(1, 2))
+    enemies.add(enemyup)
 
 #asteroid obstacle
 asteroids = sprite.Group()
-for i in range(3):
-    asteroid = Asteroid("images/asteroid.png", randint(80, 620), 50, 85, 65, 2)
+for i in range(2):
+    asteroid = Asteroid("images/asteroid.png", randint(80, 620), -50, 85, 65, 2)
     asteroids.add(asteroid)
 
 
@@ -134,7 +153,7 @@ while game:
                 lost -= 1
                 reload = True
                 event_time = time_counter()
-                new_enemy = Enemy("images/ufo.png", randint(80, 620), 50, 85, 65, randint(1, 2))
+                new_enemy = Enemy_down("images/ufo.png", randint(80, 620), 50, 85, 65, randint(1, 2))
                 enemies.add(new_enemy)
         
             if collides_as:
@@ -183,13 +202,13 @@ while game:
         )
         for coll in collides2:
             score += 1
-            new_enemy = Enemy("images/ufo.png", randint(80, 620), 50, 85, 65, randint(1, 5))
+            new_enemy = Enemy_down("images/ufo.png", randint(80, 620), 0, 85, 65, randint(1, 2))
             #add new enemy to the group
             enemies.add(new_enemy)
 
         for collide in collides:
             score += 1
-            new_enemy = Enemy("images/ufo.png", randint(80, 620), 50, 85, 65, randint(1, 5))
+            new_enemy = Enemy_up("images/ufo.png", randint(80, 620), 500, 85, 65, randint(1, 2))
             #add new enemy to the group
             enemies.add(new_enemy)
 
@@ -206,7 +225,7 @@ while game:
                 player.firedown()
                 fire_sound.play()
                 shots = shots + 1
-                if shots >= 5:
+                if shots >= 6:
                     shots = 0
                     reload = True 
                     event_time = time_counter()               
