@@ -1,7 +1,7 @@
 ### Spaceshooter2
 Game of spaceshooter modified from the shooter game
 ## Heres an image of the game
-<img src = "image/present1.png/">
+<img src = "images/present1.PNG/">
 
 ## How to play this game?
 
